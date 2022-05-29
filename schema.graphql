@@ -1,0 +1,147 @@
+scalar DateTime
+
+type DeliveryClient implements Identifiable {
+  id: String!
+  name: String!
+  email: String!
+  startTime: String
+  endTime: String
+  weight: Float
+  volume: Float
+  location: Location!
+}
+
+input DeliveryClientInputForm {
+  name: String!
+  email: String!
+  address: String!
+  startTime: String
+  endTime: String
+  weight: Float
+  volume: Float
+}
+
+input DeliveryOrderInputForm {
+  routeId: String!
+  name: String!
+  address: String!
+  clientId: String
+  startTime: String
+  endTime: String
+  weight: Float
+  volume: Float
+}
+
+type DeliveryOrderModel implements Identifiable {
+  id: String!
+  name: String!
+  startTime: String
+  endTime: String
+  weight: Float
+  volume: Float
+  location: Location!
+}
+
+type DeliveryOrderSolution implements Identifiable {
+  id: String!
+  orderId: String!
+  order: Int!
+  estimatedArrivalTime: DateTime!
+  estimatedDepartureTime: DateTime!
+  details: DeliveryOrderModel
+}
+
+type Driver implements Identifiable {
+  id: String!
+  name: String!
+  email: String!
+  location: Location
+}
+
+interface Identifiable {
+  id: String!
+}
+
+type Location {
+  address: String!
+  latitude: Float!
+  longitude: Float!
+}
+
+type Mutation {
+  addDriver(name: String!, email: String!, address: String!): Driver!
+  updateDriverLocation(lat: Float!, lng: Float!): Boolean!
+  deleteDriver(id: String!): Boolean!
+  addClient(client: DeliveryClientInputForm!): DeliveryClient!
+  removeClient(id: String!): Boolean!
+  addRoute(name: String!, startAddress: String!, roundTrip: Boolean!): Route!
+  deleteRoute(routeId: String!): Boolean!
+  addOrder(routeId: String!, address: String!, name: String!): DeliveryOrderModel!
+  addDetailedOrder(order: DeliveryOrderInputForm!): DeliveryOrderModel!
+  addOrderByClient(routeId: String!, clientIds: [String!]!): [DeliveryOrderModel!]!
+  deleteOrder(orderId: String!): Boolean!
+  assignRouteDriver(routeId: String!, driverId: String!): Boolean!
+  solveRoute(routeId: String!, algorithm: VRPAlg!): RouteSolution!
+  setSolution(routeId: String!, solutionId: String!): RouteSolution
+  setBestSolution(routeId: String!): RouteSolution
+  deleteSolution(id: String!): Boolean!
+  addSupplierPermissions: Boolean!
+}
+
+type Query {
+  clients: [DeliveryClient!]!
+  drivers: [Driver!]!
+  findDriver(id: String!): Driver
+  routes: [Route!]!
+  findRoute(id: String!): Route
+  routesByDriver: [Route!]!
+  routeSolutions(id: String!): [RouteSolution!]!
+}
+
+type Route implements Identifiable {
+  id: String!
+  name: String!
+  state: RouteState!
+  selectedDriverId: String
+  roundTrip: Boolean!
+  orders: [DeliveryOrderModel!]!
+  solutions: [RouteSolution!]!
+  startLocation: Location!
+  selectedSolution: RouteSolution
+  startTime: DateTime!
+}
+
+type RouteDirections {
+  id: String!
+  geometry: String!
+  distance: Float!
+  duration: Float!
+}
+
+type RouteSolution implements Identifiable {
+  id: String!
+  algorithm: VRPAlg!
+  nrOrders: Int!
+  distance: Float!
+  time: Float!
+  totalWeight: Float
+  totalVolume: Float
+  orders: [DeliveryOrderSolution!]!
+  directions: RouteDirections
+}
+
+enum RouteState {
+  Idle
+  Optimized
+  InDelivery
+  Delivered
+}
+
+enum VRPAlg {
+  unknown
+  Christofides
+  greedySchrimp
+  nearestNeighbour
+  backtrack
+}
+
